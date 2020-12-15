@@ -1,6 +1,6 @@
 {
   "name": "discord.js-pages",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Dynamic pages pagination module for discord.js",
   "scripts": {
     "build": "babel src --out-dir lib"
@@ -15,6 +15,14 @@
   "module": "./src/PagesManager.mjs",
   "author": "MrZillaGold <Pronin Egor | mrzillagold@gmail.com>",
   "license": "GPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MrZillaGold/discord.js-pages.git"
+  },
+  "bugs": {
+    "url": "https://github.com/MrZillaGold/discord.js-pages/issues"
+  },
+  "homepage": "https://github.com/MrZillaGold/discord.js-pages#readme",
   "keywords": [
     "discord.js",
     "discord",
