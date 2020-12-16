@@ -1,6 +1,6 @@
 # Introduction
 ### Install 📦
-`npm i vk-io-pages`
+`npm i discord.js-pages`
 
 ### Documentation 📖
 | 📖 [Methods](methods.md) | 🤖 [Examples](examples) |
