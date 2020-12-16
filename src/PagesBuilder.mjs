@@ -272,7 +272,7 @@ export class PagesBuilder extends MessageEmbed {
     /**
      * @description Method for early stopping listening to new messages
      */
-    async stopListen() {
+    stopListen() {
         clearTimeout(this._listenTimeout);
 
         this.collection.stop();
