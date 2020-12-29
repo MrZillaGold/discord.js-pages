@@ -121,6 +121,10 @@ export class PagesBuilder extends MessageEmbed {
                         }
 
                         break;
+                    case "files":
+                        page[key] = this[key].length ? this[key] : page[key];
+
+                        break;
                     default:
                         page[key] = this[key] ?? page[key];
 
