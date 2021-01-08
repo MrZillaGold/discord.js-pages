@@ -1,4 +1,8 @@
 .idea
 docs
+src
+build
+scripts
+tsconfig.json
 babel.config.json
 .gitignore
