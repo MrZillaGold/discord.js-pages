@@ -328,7 +328,7 @@ export class PagesBuilder extends MessageEmbed {
                 this.sent = message;
 
                 this._startCollection();
-                this.resetListenTimeout();
+                this.resetListenTimeout({ isFirstBuild: true });
 
                 for (const [buttonReaction] of [...(this.pages.length > 1 ? this.defaultButtons : []), ...this.triggers]) {
                     if (this.collection) {
