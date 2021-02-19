@@ -4,3 +4,6 @@ export * from "./interfaces/page";
 export * from "./interfaces/button";
 export * from "./interfaces/listen";
 export * from "./interfaces/trigger";
+
+export * from "./PagesBuilder";
+export * from "./PagesManager";
