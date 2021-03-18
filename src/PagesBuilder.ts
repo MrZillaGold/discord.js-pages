@@ -5,47 +5,31 @@ import { IPagesBuilderOptions, ITrigger, IResetListenTimeoutOptions, Button, Def
 export class PagesBuilder extends MessageEmbed {
 
     message: Message | null;
-    sent: Message | null;
-    collection: ReactionCollector | null;
+    sent: Message | null = null;
+    collection: ReactionCollector | null = null;
 
-    pages: Page[];
-    currentPage: number;
-    pagesNumberFormat: string;
-    infinityLoop: boolean;
+    pages: Page[] = [];
+    currentPage: number = 1;
+    pagesNumberFormat: string = "%c / %m";
+    infinityLoop: boolean = true;
 
-    defaultButtons: DefaultButtonsMap;
+    defaultButtons: DefaultButtonsMap = new Map();
 
-    listenTime: number;
+    listenTime: number = 5 * 60 * 1000;
     listenUsers: ListenUser[];
-    _listenTimeout: NodeJS.Timeout | null;
-    resetTimeout: boolean;
-    endColor: ColorResolvable;
-    endMethod: EndMethod;
+    private _listenTimeout: NodeJS.Timeout | null = null;
+    resetTimeout: boolean = true;
+    endColor: ColorResolvable = "GREY";
+    endMethod: EndMethod = "edit";
 
-    triggers: TriggersMap;
+    triggers: TriggersMap = new Map();
 
     constructor({ message }: IPagesBuilderOptions) {
         super();
 
         this.message = message;
-        this.sent = null;
-        this.collection = null;
 
-        this.pages = [];
-        this.currentPage = 1;
-        this.pagesNumberFormat = "%c / %m";
-        this.infinityLoop = true;
-
-        this.defaultButtons = new Map();
-
-        this.listenTime = 5 * 60 * 1000;
         this.listenUsers = [message.author.id];
-        this._listenTimeout = null;
-        this.resetTimeout = true;
-        this.endColor = "GREY";
-        this.endMethod = "edit";
-
-        this.triggers = new Map();
 
         this.setDefaultButtons();
     }
