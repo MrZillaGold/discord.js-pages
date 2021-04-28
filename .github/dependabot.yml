@@ -1,0 +1,16 @@
+version: 2
+updates:
+- package-ecosystem: npm
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "08:00"
+    timezone: Asia/Vladivostok
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: typescript
+    versions:
+    - 4.2.4
+  - dependency-name: "@babel/plugin-proposal-nullish-coalescing-operator"
+    versions:
+    - 7.13.8
