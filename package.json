@@ -1,10 +1,11 @@
 {
   "name": "discord.js-pages",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "Dynamic pages pagination module for discord.js",
   "scripts": {
-    "tsc": "tsc && node --experimental-modules --es-module-specifier-resolution=node ./scripts/removeEmptyFiles.mjs",
-    "build": "npm run-script tsc && babel build --out-dir lib --copy-files && node --experimental-modules --es-module-specifier-resolution=node ./scripts/cleanUp.mjs"
+    "prebuild": "tsc && node --experimental-modules --es-module-specifier-resolution=node ./scripts/removeEmptyFiles.mjs",
+    "build": "babel build --out-dir lib --copy-files",
+    "postbuild": "node --experimental-modules --es-module-specifier-resolution=node ./scripts/cleanUp.mjs"
   },
   "main": "./lib/PagesManager.js",
   "exports": {
@@ -35,6 +36,7 @@
     "pages"
   ],
   "dependencies": {
+    "chunk": "^0.0.3",
     "discord.js": "^12.5.1"
   },
   "devDependencies": {
@@ -43,6 +45,7 @@
     "@babel/plugin-proposal-nullish-coalescing-operator": "^7.12.1",
     "@babel/plugin-transform-modules-commonjs": "^7.12.1",
     "@babel/preset-env": "^7.12.1",
+    "@types/chunk": "^0.0.0",
     "@types/node": "^15.0.0",
     "@types/ws": "^7.4.0",
     "typescript": "^4.1.3"

@@ -4,3 +4,8 @@ export type EmbedPage = MessageEmbed;
 export type FunctionPage = () => MessageEmbed;
 
 export type Page = EmbedPage | FunctionPage;
+
+export interface IAutoGeneratePagesOptions {
+    items: string[];
+    countPerPage?: number;
+}

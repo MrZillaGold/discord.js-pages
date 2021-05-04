@@ -1,6 +1,7 @@
+import chunk from "chunk";
 import { ColorResolvable, Message, MessageEmbed, MessageReaction, ReactionCollector, User } from "discord.js";
 
-import { IPagesBuilderOptions, ITrigger, IResetListenTimeoutOptions, Button, DefaultButtonLabel, DefaultReactionsMap, EmbedPage, Page, StringButton, DefaultButtonsMap, EndMethod, SetListenUsersOptions, ListenUser, TriggersMap } from "./interfaces";
+import { IPagesBuilderOptions, ITrigger, IResetListenTimeoutOptions, Button, DefaultButtonLabel, DefaultReactionsMap, Page, StringButton, DefaultButtonsMap, EndMethod, SetListenUsersOptions, ListenUser, TriggersMap, IAutoGeneratePagesOptions } from "./interfaces";
 
 export class PagesBuilder extends MessageEmbed {
 
@@ -38,7 +39,11 @@ export class PagesBuilder extends MessageEmbed {
      * Method for initial pages setup
      */
     setPages(pages: Page | Page[]): this {
-        this.pages = !Array.isArray(pages) ? [pages] : pages;
+        if (!Array.isArray(pages)) {
+            pages = [pages];
+        }
+
+        this.pages = pages;
 
         return this;
     }
@@ -48,6 +53,22 @@ export class PagesBuilder extends MessageEmbed {
      */
     addPages(pages: Page | Page[]): this {
         this.pages = this.pages.concat(pages);
+
+        return this;
+    }
+
+    /**
+     * Method for auto generating pages
+     */
+    autoGeneratePages({ items, countPerPage = 10 }: IAutoGeneratePagesOptions) {
+        const chunks = chunk(items, countPerPage);
+
+        this.setPages(
+            chunks.map((chunk) =>
+                new MessageEmbed()
+                    .setDescription(chunk)
+            )
+        );
 
         return this;
     }
@@ -84,7 +105,7 @@ export class PagesBuilder extends MessageEmbed {
             page = await page();
         }
 
-        const clonedPage: EmbedPage = new MessageEmbed(page);
+        const clonedPage = new MessageEmbed(page);
 
         Object.keys(clonedPage)
             .forEach((pageKey) => {
@@ -341,7 +362,7 @@ export class PagesBuilder extends MessageEmbed {
                 .on("collect", (reaction: MessageReaction, user: User) => {
                     reaction.users.remove(user);
 
-                    const emoji: MessageReaction["emoji"]["id"] | MessageReaction["emoji"]["name"] = reaction.emoji.id || reaction.emoji.name;
+                    const emoji = reaction.emoji.id || reaction.emoji.name;
 
                     const action = this.defaultButtons.get(emoji as DefaultButtonLabel);
                     const trigger = this.triggers.get(emoji);
