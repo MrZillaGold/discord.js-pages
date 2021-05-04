@@ -1,8 +1,9 @@
-.idea
-docs
-src
-build
-scripts
+/.idea
+/.github
+/docs
+/src
+/build
+/scripts
 tsconfig.json
 babel.config.json
 .gitignore
