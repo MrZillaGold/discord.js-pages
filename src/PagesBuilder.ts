@@ -1,4 +1,5 @@
-import chunk from "chunk";
+// @ts-ignore
+import * as chunk from "chunk";
 import { ColorResolvable, Message, MessageEmbed, MessageReaction, ReactionCollector, User } from "discord.js";
 
 import { IPagesBuilderOptions, ITrigger, IResetListenTimeoutOptions, Button, DefaultButtonLabel, DefaultReactionsMap, Page, StringButton, DefaultButtonsMap, EndMethod, SetListenUsersOptions, ListenUser, TriggersMap, IAutoGeneratePagesOptions } from "./interfaces";
