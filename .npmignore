@@ -4,6 +4,7 @@
 /src
 /build
 /scripts
+.eslintrc.json
+.gitignore
 tsconfig.json
 babel.config.json
-.gitignore
