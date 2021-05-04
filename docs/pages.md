@@ -9,6 +9,9 @@
 <dt><a href="#setPage">setPage(pageNumber)</a> ⇒ <code>Promise<<a href="https://discord.js.org/#/docs/main/stable/class/Message">Message</a>></code>;</dt>
 <dd><p>Method for opening a specific page</p></dd>
 
+<dt><a href="#autoGeneratePages">autoGeneratePages(options)</a> ⇒ <code>PagesBuilder</code>;</dt>
+<dd><p>Method for auto generating pages</p></dd>
+
 <dt><a href="#getPage">getPage(pageNumber)</a> ⇒ <code>Promise<<a href="https://discord.js.org/#/docs/main/stable/class/MessageEmbed">MessageEmbed</a>></code>;</dt>
 <dd><p>Method for getting the page</p></dd>
 
@@ -108,6 +111,34 @@ const builder = message.pagesBuilder()
     .build();
 
 builder.setPage(2);
+```
+
+<a name="autoGeneratePages"></a>
+
+## autoGeneratePages(options) ⇒ <code>PagesBuilder</code>;
+Method for auto generating pages
+
+**Returns**: `PagesBuilder`
+
+| Params               | Type       | Default      | Description             |
+| -------------------- | ---------- | ------------ | ----------------------- |
+| options              | `Object`   |              | Object with options     |
+| options.items        | `string[]` |              | Array with string items |
+| options.countPerPage | `number`   | `10`         | Items count per page    |
+
+**Example**:
+
+```js
+const builder = message.pagesBuilder();
+
+builder.autoGeneratePages({
+    items: [
+        "Item 1",
+        "Item 2",
+        "Item 3"
+    ],
+    countPerPage: 2
+});
 ```
 
 <a name="getPage"></a>
