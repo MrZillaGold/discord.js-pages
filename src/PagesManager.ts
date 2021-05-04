@@ -10,11 +10,11 @@ class PagesManager {
                 message,
                 ...options
             });
-        }
+        };
     }
 }
 
 export {
     PagesManager,
     PagesBuilder
-}
+};

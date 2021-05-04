@@ -10,16 +10,16 @@ export class PagesBuilder extends MessageEmbed {
     collection: ReactionCollector | null = null;
 
     pages: Page[] = [];
-    currentPage: number = 1;
-    pagesNumberFormat: string = "%c / %m";
-    infinityLoop: boolean = true;
+    currentPage = 1;
+    pagesNumberFormat = "%c / %m";
+    infinityLoop = true;
 
     defaultButtons: DefaultButtonsMap = new Map();
 
     listenTime: number = 5 * 60 * 1000;
     listenUsers: ListenUser[];
     private _listenTimeout: NodeJS.Timeout | null = null;
-    resetTimeout: boolean = true;
+    resetTimeout = true;
     endColor: ColorResolvable = "GREY";
     endMethod: EndMethod = "edit";
 
@@ -60,14 +60,14 @@ export class PagesBuilder extends MessageEmbed {
     /**
      * Method for auto generating pages
      */
-    autoGeneratePages({ items, countPerPage = 10 }: IAutoGeneratePagesOptions) {
+    autoGeneratePages({ items, countPerPage = 10 }: IAutoGeneratePagesOptions): this {
         const chunks = chunk(items, countPerPage);
 
         this.setPages(
-            chunks.map((chunk) =>
+            chunks.map((chunk) => (
                 new MessageEmbed()
                     .setDescription(chunk)
-            )
+            ))
         );
 
         return this;
@@ -116,7 +116,7 @@ export class PagesBuilder extends MessageEmbed {
                         clonedPage[key] = [...this[key], ...clonedPage[key]];
 
                         break;
-                    case "footer":
+                    case "footer": {
                         const footer = this[key] ?? clonedPage[key];
 
                         if (this.pagesNumberFormat) {
@@ -136,6 +136,7 @@ export class PagesBuilder extends MessageEmbed {
                         }
 
                         break;
+                    }
                     case "files":
                         clonedPage[key] = this[key].length ? this[key] : clonedPage[key];
 
@@ -154,7 +155,7 @@ export class PagesBuilder extends MessageEmbed {
     /**
      * Method for setting the pagination format
      */
-    setPagesNumberFormat(format: string = "%c / %m"): this {
+    setPagesNumberFormat(format = "%c / %m"): this {
         this.pagesNumberFormat = format;
 
         return this;
@@ -163,7 +164,7 @@ export class PagesBuilder extends MessageEmbed {
     /**
      * Method for setting endless page switching when reaching the end
      */
-    setInfinityLoop(status: boolean = true): this {
+    setInfinityLoop(status = true): this {
         this.infinityLoop = status;
 
         return this;
@@ -265,7 +266,7 @@ export class PagesBuilder extends MessageEmbed {
     /**
      * Method for setting the timer to automatically reset when switching between pages
      */
-    autoResetTimeout(status: boolean = true): this {
+    autoResetTimeout(status = true): this {
         this.resetTimeout = status;
 
         return this;
@@ -274,7 +275,7 @@ export class PagesBuilder extends MessageEmbed {
     /**
      * Method for early stopping listening to new messages
      */
-    stopListen() {
+    stopListen(): void {
         if (this._listenTimeout && this.collection) {
             clearTimeout(this._listenTimeout);
 
@@ -307,9 +308,9 @@ export class PagesBuilder extends MessageEmbed {
             triggers = [triggers];
         }
 
-        triggers.forEach(({ emoji, callback }) =>
+        triggers.forEach(({ emoji, callback }) => (
             this.triggers.set(emoji, callback)
-        );
+        ));
 
         return this;
     }
@@ -355,10 +356,10 @@ export class PagesBuilder extends MessageEmbed {
         const message = this.sent;
 
         if (message) {
-            this.collection = message.createReactionCollector((_: MessageReaction, user: User) =>
+            this.collection = message.createReactionCollector((_: MessageReaction, user: User) => (
                 user.id !== message.author.id &&
                 (this.listenUsers.length ? this.listenUsers.includes(user.id) : true)
-            )
+            ))
                 .on("collect", (reaction: MessageReaction, user: User) => {
                     reaction.users.remove(user);
 
@@ -380,14 +381,14 @@ export class PagesBuilder extends MessageEmbed {
                                 embed: (await this.getPage())
                                     .setColor(this.endColor)
                             })
-                                .catch(() => {});
+                                .catch(() => null);
 
                             return message.reactions.removeAll()
-                                .catch(() => {});
+                                .catch(() => null);
                         case "delete":
                             return message.delete()
                                 .then(() => this.sent = null)
-                                .catch(() => {});
+                                .catch(() => null);
                     }
                 });
         }
