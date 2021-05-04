@@ -4,4 +4,4 @@ import tsconfig from "../tsconfig.json";
 
 const OUT_DIR = tsconfig.compilerOptions.outDir;
 
-await fs.rmdir(`./${OUT_DIR}`, { recursive: true });
+await fs.rm(`./${OUT_DIR}`, { recursive: true });
