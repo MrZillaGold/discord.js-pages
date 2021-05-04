@@ -296,7 +296,7 @@ export class PagesBuilder extends MessageEmbed {
     /**
      * Method for build and send pages
      */
-    async build(): Promise<Message> {
+    async build(sent: Message | null = null): Promise<Message> {
         if (this.pages.length === 0) {
             throw new Error("Pages not set");
         }
@@ -305,10 +305,16 @@ export class PagesBuilder extends MessageEmbed {
             throw new Error("Message not passed");
         }
 
-        return this.message.channel.send({
+        // @ts-ignore
+        return (
+            sent ?
+                sent.edit.bind(sent)
+                :
+                this.message.channel.send.bind(this.message.channel)
+        )({
             embed: await this.getPage()
         })
-            .then(async (message) => {
+            .then(async (message: Message) => {
                 this.sent = message;
 
                 this._startCollection();
