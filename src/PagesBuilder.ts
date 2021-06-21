@@ -1,16 +1,19 @@
 // @ts-ignore
 import * as chunk from "chunk";
-import { ColorResolvable, Message, MessageEmbed, MessageReaction, ReactionCollector, User } from "discord.js";
+import { ColorResolvable, CommandInteraction, Message, MessageEmbed, MessageOptions, MessageReaction, ReactionCollector, User } from "discord.js";
 
 import { IPagesBuilderOptions, ITrigger, IResetListenTimeoutOptions, Button, DefaultButtonLabel, DefaultReactionsMap, Page, StringButton, DefaultButtonsMap, EndMethod, SetListenUsersOptions, ListenUser, TriggersMap, IAutoGeneratePagesOptions } from "./interfaces";
 
+type Files = Exclude<MessageOptions["files"], undefined>;
+
 export class PagesBuilder extends MessageEmbed {
 
-    message: Message | null;
+    message: Message | CommandInteraction | null;
     sent: Message | null = null;
     collection: ReactionCollector | null = null;
 
     pages: Page[] = [];
+    files: Files = [];
     currentPage = 1;
     pagesNumberFormat = "%c / %m";
     infinityLoop = true;
@@ -29,9 +32,11 @@ export class PagesBuilder extends MessageEmbed {
     constructor({ message }: IPagesBuilderOptions) {
         super();
 
+        (message as Message).author = (message as CommandInteraction).member as unknown as User;
+
         this.message = message;
 
-        this.listenUsers = [message.author.id];
+        this.listenUsers = [(message as Message).author.id];
 
         this.setDefaultButtons();
     }
@@ -59,6 +64,28 @@ export class PagesBuilder extends MessageEmbed {
     }
 
     /**
+     * Method for initial files setup
+     */
+    setFiles(files: Files | Files[number]): this {
+        if (!Array.isArray(files)) {
+            files = [files];
+        }
+
+        this.files = files;
+
+        return this;
+    }
+
+    /**
+     * Method for adding files to the end
+     */
+    addFiles(files: Files | Files[number]): this {
+        this.files = this.files.concat(files);
+
+        return this;
+    }
+
+    /**
      * Method for auto generating pages
      */
     autoGeneratePages({ items, countPerPage = 10 }: IAutoGeneratePagesOptions): this {
@@ -67,7 +94,9 @@ export class PagesBuilder extends MessageEmbed {
         this.setPages(
             chunks.map((chunk) => (
                 new MessageEmbed()
-                    .setDescription(chunk)
+                    .setDescription(
+                        chunk.join("\n")
+                    )
             ))
         );
 
@@ -86,7 +115,7 @@ export class PagesBuilder extends MessageEmbed {
             }
 
             return this.sent.edit({
-                embed: await this.getPage(pageNumber)
+                embeds: await this.getPage(pageNumber)
             })
                 .then((message: Message) => {
                     this.sent = message;
@@ -99,7 +128,7 @@ export class PagesBuilder extends MessageEmbed {
     /**
      * Method for getting the page
      */
-    async getPage(pageNumber: number = this.currentPage): Promise<MessageEmbed> {
+    async getPage(pageNumber: number = this.currentPage): Promise<MessageEmbed[]> {
         let page: Page = this.pages[pageNumber - 1];
 
         if (typeof page === "function") {
@@ -138,10 +167,6 @@ export class PagesBuilder extends MessageEmbed {
 
                         break;
                     }
-                    case "files":
-                        clonedPage[key] = this[key].length ? this[key] : clonedPage[key];
-
-                        break;
                     default:
                         // @ts-ignore
                         clonedPage[key] = this[key] ?? clonedPage[key];
@@ -150,7 +175,7 @@ export class PagesBuilder extends MessageEmbed {
                 }
             });
 
-        return clonedPage;
+        return [clonedPage];
     }
 
     /**
@@ -319,7 +344,7 @@ export class PagesBuilder extends MessageEmbed {
     /**
      * Method for build and send pages
      */
-    async build(sent: Message | null = null): Promise<Message> {
+    async build(sent: Message | CommandInteraction  | null = null): Promise<Message> {
         if (this.pages.length === 0) {
             throw new Error("Pages not set");
         }
@@ -328,32 +353,52 @@ export class PagesBuilder extends MessageEmbed {
             throw new Error("Message not passed");
         }
 
-        // @ts-ignore
-        return (
-            sent ?
-                sent.edit.bind(sent)
-                :
-                this.message.channel.send.bind(this.message.channel)
-        )({
-            embed: await this.getPage()
-        })
-            .then(async (message: Message) => {
-                this.sent = message;
+        const message = {
+            embeds: await this.getPage(),
+            files: this.files
+        };
 
-                this._startCollection();
+        const isInteraction = (this.message instanceof CommandInteraction || "webhook" in this.message) && !this.message.replied;
+        const interaction = this.message as CommandInteraction;
+
+        if (isInteraction) {
+            if (!interaction.isCommand()) {
+                throw new Error("Passed interaction not have command flag");
+            }
+
+            if (interaction.deferred) {
+                await interaction.editReply(message);
+            } else {
+                await interaction.reply(message);
+            }
+        }
+
+        const sendMessage = isInteraction ?
+            interaction.fetchReply.bind(interaction)
+            :
+            sent ?
+                (sent as Message).edit.bind(sent)
+                :
+                this.message.channel.send.bind(this.message.channel);
+
+        return sendMessage(message)
+            .then(async (message) => {
+                this.sent = message as Message;
+
+                this.startCollection();
                 this.resetListenTimeout({ isFirstBuild: true });
 
                 for (const [buttonReaction] of [...(this.pages.length > 1 ? this.defaultButtons : []), ...this.triggers]) {
                     if (this.collection) {
-                        await message.react(buttonReaction);
+                        await (message as Message).react(buttonReaction);
                     }
                 }
 
-                return message;
+                return message as Message;
             });
     }
 
-    private _startCollection(): void {
+    private startCollection(): void {
         const message = this.sent;
 
         if (message) {
@@ -367,25 +412,31 @@ export class PagesBuilder extends MessageEmbed {
                     const emoji = reaction.emoji.id || reaction.emoji.name;
 
                     const action = this.defaultButtons.get(emoji as DefaultButtonLabel);
-                    const trigger = this.triggers.get(emoji);
+                    const trigger = this.triggers.get(emoji as DefaultButtonLabel);
 
                     if (action) {
-                        this._executeAction(action);
+                        this.executeAction(action);
                     } else if (trigger) {
                         trigger(message, reaction, user);
                     }
                 })
                 .on("end", async () => {
                     switch (this.endMethod) {
-                        case "edit":
+                        case "edit": {
+                            const embeds = await this.getPage();
+
+                            const [embed] = embeds;
+
+                            embed.setColor(this.endColor);
+
                             message.edit({
-                                embed: (await this.getPage())
-                                    .setColor(this.endColor)
+                                embeds
                             })
                                 .catch(() => null);
 
                             return message.reactions.removeAll()
                                 .catch(() => null);
+                        }
                         case "delete":
                             return message.delete()
                                 .then(() => this.sent = null)
@@ -395,7 +446,7 @@ export class PagesBuilder extends MessageEmbed {
         }
     }
 
-    private _executeAction(action: StringButton): void {
+    private executeAction(action: StringButton): void {
         switch (action) {
             case "first":
                 if (this.currentPage === 1) {

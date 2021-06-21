@@ -1,11 +1,11 @@
 import { PagesBuilder } from "./PagesBuilder";
 
-import { IPagesMessage, Middleware } from "./interfaces/pageManager";
+import { IPagesInteraction, IPagesMessage, Middleware } from "./interfaces/pageManager";
 
 class PagesManager {
 
     get middleware(): Middleware {
-        return (message: IPagesMessage) => {
+        return (message: IPagesMessage | IPagesInteraction) => {
             message.pagesBuilder = (options = {}) => new PagesBuilder({
                 message,
                 ...options
