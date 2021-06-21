@@ -371,6 +371,9 @@ export class PagesBuilder extends MessageEmbed {
             } else {
                 await interaction.reply(message);
             }
+
+            // https://github.com/discordjs/discord.js/pull/5899
+            interaction.replied = true;
         }
 
         const sendMessage = isInteraction ?

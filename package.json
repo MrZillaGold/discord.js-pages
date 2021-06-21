@@ -1,6 +1,6 @@
 {
   "name": "discord.js-pages",
-  "version": "1.3.0-rc.2",
+  "version": "1.3.0-rc.3",
   "description": "Dynamic pages pagination module for discord.js",
   "scripts": {
     "prebuild": "tsc && node --experimental-modules --es-module-specifier-resolution=node ./scripts/removeEmptyFiles.mjs",
