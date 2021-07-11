@@ -4,7 +4,11 @@ const { PagesBuilder } = require("discord.js-pages");
 const client = new Client();
 
 client.on("message", (message) => {
-    new PagesBuilder(message)
+    if (message.author.bot) {
+        return;
+    }
+
+    new PagesBuilder({ message })
         .setTitle("Global title")
         .setPages([
             new MessageEmbed()
@@ -23,7 +27,7 @@ client.on("message", (message) => {
             }
         }])
         .addField("Global field", "discord.js-pages", true)
-        .setImage("https://discord.com/assets/fc0b01fe10a0b8c602fb0106d8189d9b.png")
+        .setImage("https://discord.com/assets/ff41b628a47ef3141164bfedb04fb220.png")
         .setColor("GREEN")
         .build();
 });

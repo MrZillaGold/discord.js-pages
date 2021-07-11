@@ -4,7 +4,11 @@ const { PagesBuilder } = require("discord.js-pages");
 const client = new Client();
 
 client.on("message", (message) => {
-    new PagesBuilder(message)
+    if (message.author.bot) {
+        return;
+    }
+
+    new PagesBuilder({ message })
         .setPages([
             new MessageEmbed()
                 .setDescription("First page"),
