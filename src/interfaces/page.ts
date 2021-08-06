@@ -1,7 +1,7 @@
-import { MessageEmbed } from "discord.js";
+import { MessageEmbed } from 'discord.js';
 
 export type EmbedPage = MessageEmbed;
-export type FunctionPage = () => MessageEmbed;
+export type FunctionPage = () => MessageEmbed | Promise<MessageEmbed>;
 
 export type Page = EmbedPage | FunctionPage;
 

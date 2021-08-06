@@ -1,4 +1,10 @@
 .idea
+.github
 node_modules
 lib
 build
+scripts
+.gitignore
+.eslintrc.json
+babel.config.json
+tsconfig.json

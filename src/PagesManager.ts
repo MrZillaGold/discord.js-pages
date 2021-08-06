@@ -1,20 +1,21 @@
-import { PagesBuilder } from "./PagesBuilder";
+import { PagesBuilder } from './PagesBuilder';
 
-import { IPagesInteraction, IPagesMessage, Middleware } from "./interfaces/pageManager";
+import { IPagesInteraction, Middleware, EndMethod, Action, ActionLabel } from './interfaces';
 
 class PagesManager {
 
     get middleware(): Middleware {
-        return (message: IPagesMessage | IPagesInteraction) => {
-            message.pagesBuilder = (options = {}) => new PagesBuilder({
-                message,
-                ...options
-            });
+        return (interaction: IPagesInteraction) => {
+            interaction.pagesBuilder = () => new PagesBuilder(interaction);
         };
     }
 }
 
 export {
     PagesManager,
-    PagesBuilder
+    PagesBuilder,
+
+    EndMethod,
+    Action,
+    ActionLabel
 };

@@ -1,15 +1,16 @@
 {
   "name": "discord.js-pages",
-  "version": "1.3.0-rc.3",
+  "version": "1.3.0-rc.4",
   "description": "Dynamic pages pagination module for discord.js",
   "scripts": {
-    "prebuild": "tsc && node --experimental-modules --es-module-specifier-resolution=node ./scripts/removeEmptyFiles.mjs",
-    "build": "babel build --out-dir lib --copy-files",
+    "build": "tsc && babel build --out-dir lib --copy-files",
     "postbuild": "node --experimental-modules --es-module-specifier-resolution=node ./scripts/cleanUp.mjs",
+    "docs": "typedoc --out docs src/PagesManager.ts --theme minimal --gitRevision master",
     "eslint:check": "eslint ./src/**/*",
     "eslint:fix": "eslint ./src/**/* --fix"
   },
   "main": "./lib/PagesManager.js",
+  "types": "./lib/interfaces/index.d.ts",
   "exports": {
     ".": [
       {
@@ -20,7 +21,6 @@
     ],
     "./esm": "./esm/index.mjs"
   },
-  "types": "./lib/interfaces.d.ts",
   "author": "MrZillaGold <Pronin Egor | mrzillagold@gmail.com>",
   "license": "GPL-3.0",
   "repository": {
@@ -53,7 +53,13 @@
     "@types/ws": "^7.4.0",
     "@typescript-eslint/eslint-plugin": "^4.18.0",
     "@typescript-eslint/parser": "^4.17.0",
+    "discord-api-types": "^0.23.0-next.5723cc0.1628166896",
     "eslint": "^7.22.0",
+    "typedoc": "^0.21.5",
     "typescript": "^4.1.3"
+  },
+  "engines": {
+    "node": ">=16.6.0",
+    "npm": ">=7.0.0"
   }
 }

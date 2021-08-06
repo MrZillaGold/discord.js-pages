@@ -1,13 +1,24 @@
-import { EmojiIdentifierResolvable } from "discord.js";
+import { MessageButton } from 'discord.js';
 
-export type DefaultButtonLabel = "⏪" | "◀️" | "⏹" | "▶️" | "⏩";
+export enum ActionLabel {
+    FIRST = '⏪',
+    BACK = '◀️',
+    STOP = '⏹',
+    NEXT = '▶️',
+    LAST = '⏩'
+}
+export type ActionLabelUnion = `${ActionLabel}`;
 
-export type StringButton = "first" | "back" | "stop" | "next" | "last";
-export type ObjectButton = {
-    [key in StringButton]: EmojiIdentifierResolvable;
+export enum Action {
+    FIRST = 'first',
+    BACK = 'back',
+    STOP = 'stop',
+    NEXT = 'next',
+    LAST = 'last'
+}
+export type ActionUnion = `${Action}`;
+export type ActionObject = {
+    [key in Action | ActionUnion]: MessageButton;
 };
 
-export type Button = StringButton | ObjectButton;
-
-export type DefaultReactionsMap = Map<StringButton, DefaultButtonLabel>;
-export type DefaultButtonsMap = Map<DefaultButtonLabel, StringButton>;
+export type Button = Action | ActionUnion | ActionObject;

@@ -2,8 +2,8 @@ export interface IResetListenTimeoutOptions {
     isFirstBuild?: boolean;
 }
 
-export type EndMethod = "edit" | "delete";
-
-export type ListenUser = string;
-
-export type SetListenUsersOptions = ListenUser | ListenUser[];
+export enum EndMethod {
+    EDIT = 'edit',
+    DELETE = 'delete'
+}
+export type EndMethodUnion = `${EndMethod}`;

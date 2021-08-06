@@ -1,10 +1,14 @@
-import { EmojiIdentifierResolvable, Message, MessageReaction, User } from "discord.js";
+import {
+    EmojiIdentifierResolvable,
+    MessageActionRowComponent,
+    MessageComponentInteraction
+} from 'discord.js';
 
-export type TriggerCallback = (sent: Message, reaction: MessageReaction, user: User) => unknown;
+export type TriggerCallback<T extends MessageActionRowComponent> = (interaction: MessageComponentInteraction, ...components: (T)[]) => unknown;
 
-export interface ITrigger {
-    emoji: EmojiIdentifierResolvable;
-    callback: TriggerCallback;
+export interface ITrigger<T extends MessageActionRowComponent> {
+    name: string;
+    callback: TriggerCallback<T>;
 }
 
-export type TriggersMap = Map<EmojiIdentifierResolvable, TriggerCallback>;
+export type TriggersMap = Map<EmojiIdentifierResolvable, TriggerCallback<any>>;
