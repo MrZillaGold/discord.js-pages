@@ -2738,7 +2738,7 @@ img {
 					<thead>
 						<tr>
 							<th>📖 <a href="https://mrzillagold.github.io/discord.js-pages/index.html">Documentation</a></th>
-							<th>🤖 <a href="docs/examples">Examples</a></th>
+							<th><a href="https://github.com/MrZillaGold/discord.js-pages">🤖 Examples</a></th>
 						</tr>
 					</thead>
 				</table>
@@ -2750,7 +2750,7 @@ img {
 			<a href="#usage-📦" id="usage-📦" style="color: inherit; text-decoration: none;">
 				<h3>Usage 📦</h3>
 			</a>
-			<pre><code class="language-js"><span style="color: #AF00DB">import</span><span style="color: #000000"> { </span><span style="color: #001080">PagesBuilder</span><span style="color: #000000"> } </span><span style="color: #AF00DB">from</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;discord.js-pages&#039;</span><span style="color: #000000">;</span>
+			<pre><code class="language-js"><span style="color: #AF00DB">import</span><span style="color: #000000"> { </span><span style="color: #001080">PagesBuilder</span><span style="color: #000000">, </span><span style="color: #001080">PagesManager</span><span style="color: #000000"> } </span><span style="color: #AF00DB">from</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;discord.js-pages&#039;</span><span style="color: #000000">;</span>
 <span style="color: #AF00DB">import</span><span style="color: #000000"> { </span><span style="color: #001080">Client</span><span style="color: #000000">, </span><span style="color: #001080">MessageEmbed</span><span style="color: #000000"> } </span><span style="color: #AF00DB">from</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;discord.js&#039;</span><span style="color: #000000">;</span>
 
 <span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">client</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">Client</span><span style="color: #000000">({</span>
@@ -2758,6 +2758,8 @@ img {
 <span style="color: #000000">        </span><span style="color: #A31515">&#039;GUILDS&#039;</span>
 <span style="color: #000000">    ]</span>
 <span style="color: #000000">});</span>
+
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">pagesManager</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">PagesManager</span><span style="color: #000000">();</span>
 
 <span style="color: #008000">// Middleware is useful in bots with modular commands</span>
 <span style="color: #001080">client</span><span style="color: #000000">.</span><span style="color: #795E26">on</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;interactionCreate&#039;</span><span style="color: #000000">, (</span><span style="color: #001080">interaction</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> {</span>

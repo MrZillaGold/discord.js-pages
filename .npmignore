@@ -4,6 +4,7 @@
 /src
 /build
 /scripts
+/examples
 .eslintrc.json
 .gitignore
 tsconfig.json

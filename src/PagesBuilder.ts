@@ -278,9 +278,9 @@ export class PagesBuilder extends MessageEmbed {
      * @example
      * ```
      * builder.setDefaultButtons(['first', {
-     *   'stop': new MessageButton()
-     *   .setLabel('Stop')
-     *   .setStyle('PRIMARY')
+     *   stop: new MessageButton()
+     *      .setLabel('Stop')
+     *      .setStyle('PRIMARY')
      * }]);
      * ```
      */
