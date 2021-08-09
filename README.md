@@ -9,7 +9,7 @@
     <img src="https://badge.fury.io/js/discord.js-pages.svg" alt="npm version" height="18">
   </a>
 
-| 📖 [Documentation](https://mrzillagold.github.io/discord.js-pages/index.html) | [🤖 Examples](https://github.com/MrZillaGold/discord.js-pages) |
+| 📖 [Documentation](https://mrzillagold.github.io/discord.js-pages/index.html) | [🤖 Examples](https://github.com/MrZillaGold/discord.js-pages/tree/master/examples) |
 | --- | --- |
 
 </p>
