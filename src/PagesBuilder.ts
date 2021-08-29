@@ -35,11 +35,15 @@ type Files = Exclude<MessageOptions['files'], undefined>;
 
 export class PagesBuilder extends MessageEmbed {
 
+    /**
+     * Common
+     */
     readonly interaction: CommandInteraction;
     private collector!: InteractionCollector<MessageComponentInteraction>;
     private messageComponent?: MessageComponentInteraction;
     private message!: Message;
     private messageId = '';
+    private buildMethod!: 'followUp' | 'editReply' | 'reply';
 
     /**
      * Pages
@@ -50,9 +54,15 @@ export class PagesBuilder extends MessageEmbed {
     private paginationFormat = '%c / %m';
     private loop = true;
 
+    /**
+     * Components
+     */
     private components: MessageActionRow[] = [];
     private defaultButtons: MessageActionRow[] = [];
 
+    /**
+     * Listen
+     */
     private listenTimeout: number = 5 * 60 * 1000;
     private listenUsers: GuildMember['id'][];
     private timeout!: NodeJS.Timeout;
@@ -60,6 +70,9 @@ export class PagesBuilder extends MessageEmbed {
     private endColor: ColorResolvable = 'GREY';
     private endMethod: EndMethod | EndMethodUnion = EndMethod.EDIT;
 
+    /**
+     * Triggers
+     */
     private triggers: TriggersMap = new Map();
 
     constructor(interaction: CommandInteraction) {
@@ -179,15 +192,16 @@ export class PagesBuilder extends MessageEmbed {
         };
 
         if (this.messageComponent) {
-            if (this.messageComponent.replied) {
-                return;
-            }
+            const method = this.messageComponent.deferred || this.messageComponent.replied ?
+                'editReply'
+                :
+                'update';
 
-            const response = await this.messageComponent[this.messageComponent.deferred ? 'editReply' : 'update'](data);
+            return this.messageComponent[method](data);
+        }
 
-            this.messageComponent = undefined;
-
-            return response;
+        if (this.buildMethod !== 'reply') {
+            return this.message.edit(data);
         }
 
         return this.interaction.editReply(data);
@@ -513,6 +527,8 @@ export class PagesBuilder extends MessageEmbed {
                     this.message = message as Message;
                 }
             });
+
+        this.buildMethod = method;
 
         if (!this.messageId) {
             await this.interaction.fetchReply()
