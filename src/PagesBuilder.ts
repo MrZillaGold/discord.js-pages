@@ -6,11 +6,13 @@ import {
     GuildMember,
     InteractionCollector,
     Message,
-    MessageActionRow, MessageActionRowComponent,
+    MessageActionRow,
+    MessageActionRowComponent,
     MessageButton,
     MessageComponentInteraction,
     MessageEmbed,
-    MessageOptions, MessageSelectMenu,
+    MessageOptions,
+    MessageSelectMenu,
     TextBasedChannels,
     WebhookEditMessageOptions
 } from 'discord.js';
@@ -498,6 +500,10 @@ export class PagesBuilder extends MessageEmbed {
         });
 
         return this;
+    }
+
+    get appendedComponents(): PagesBuilder['components'] {
+        return this.components;
     }
 
     /**
