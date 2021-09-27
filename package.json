@@ -1,6 +1,6 @@
 {
   "name": "discord.js-pages",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "description": "Dynamic pages pagination module for discord.js",
   "scripts": {
     "build": "tsc && babel build --out-dir lib --copy-files",
@@ -35,7 +35,9 @@
     "discord.js",
     "discord",
     "pagination",
-    "pages"
+    "pages",
+    "interaction",
+    "components"
   ],
   "dependencies": {
     "chunk": "^0.0.3",

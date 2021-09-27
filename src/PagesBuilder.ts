@@ -59,7 +59,7 @@ export class PagesBuilder extends MessageEmbed {
     /**
      * Components
      */
-    private components: MessageActionRow[] = [];
+    protected components: MessageActionRow[] = [];
     private defaultButtons: MessageActionRow[] = [];
 
     /**
