@@ -464,6 +464,43 @@ export class PagesBuilder extends MessageEmbed {
     }
 
     /**
+     * Method for update existing components
+     *
+     * @example
+     * ```
+     * const button = new MessageButton()
+     *    .setCustomId('test')
+     *    .setLabel('Test button')
+     *    .setStyle('PRIMARY');
+     *
+     * builder.addComponents(button);
+     *
+     * button.setLabel('Primary button');
+     *
+     * builder.updateComponents(button);
+     *
+     * builder.rerender();
+     * ```
+     */
+    updateComponents(components: MessageActionRowComponent | MessageActionRowComponent[]): this {
+        if (!Array.isArray(components)) {
+            components = [components];
+        }
+
+        components.forEach((component) => {
+            this.components.forEach((row) => {
+                const index = row.components.findIndex(({ customId }) => customId === component.customId);
+
+                if (index !== -1) {
+                    row.spliceComponents(index, 1, component);
+                }
+            });
+        });
+
+        return this;
+    }
+
+    /**
      * Method for initial setting of triggers
      */
     setTriggers<T extends MessageButton | MessageSelectMenu>(triggers: ITrigger<T> | ITrigger<T>[] = []): this {
