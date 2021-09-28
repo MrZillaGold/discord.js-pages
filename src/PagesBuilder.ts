@@ -80,10 +80,6 @@ export class PagesBuilder extends MessageEmbed {
     constructor(interaction: CommandInteraction) {
         super();
 
-        if (!interaction.isCommand()) {
-            throw new TypeError(`${this.constructor.name} can only be initialized when calling the slash command`);
-        }
-
         this.interaction = interaction;
 
         this.listenUsers = [(interaction.member as GuildMember).user.id];
