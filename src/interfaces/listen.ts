@@ -3,10 +3,10 @@ export interface IResetListenTimeoutOptions {
 }
 
 export enum EndMethod {
+    NONE = 'none',
     EDIT = 'edit',
     DELETE = 'delete',
-    NONE = 'none',
-    COMPONENTS_REMOVE = 'components_remove',
-    EMBEDS_REMOVE = 'embeds_remove'
+    REMOVE_COMPONENTS = 'remove_components',
+    REMOVE_EMBEDS = 'remove_embeds'
 }
 export type EndMethodUnion = `${EndMethod}`;
