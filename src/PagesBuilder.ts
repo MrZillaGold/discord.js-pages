@@ -659,10 +659,22 @@ export class PagesBuilder extends MessageEmbed {
                     }
                     case EndMethod.NONE:
                         break;
+                    
+                    case _interfaces.EndMethod.COMPONENTS_REMOVE:
+                        this.message.edit({
+                            components: []
+                        })
+                        break;
+                    
+                    case _interfaces.EndMethod.EMBEDS_REMOVE:
+                        this.message.edit({
+                            embeds: []
+                        }).catch(() => null);
+                        break;
+                    
                     case EndMethod.DELETE:
                         this.message.delete()
                             .catch(() => null);
-
                         break;
                 }
             });
