@@ -654,13 +654,23 @@ export class PagesBuilder extends MessageEmbed {
                             components: []
                         })
                             .catch(() => null);
-
                         break;
                     }
+                    case EndMethod.REMOVE_COMPONENTS:
+                        this.message.edit({
+                            components: []
+                        })
+                            .catch(() => null);
+                        break;
+                    case EndMethod.REMOVE_EMBEDS:
+                        this.message.edit({
+                            embeds: []
+                        })
+                            .catch(() => null);
+                        break;
                     case EndMethod.DELETE:
                         this.message.delete()
                             .catch(() => null);
-
                         break;
                 }
             });
