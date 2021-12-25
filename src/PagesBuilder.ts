@@ -657,6 +657,8 @@ export class PagesBuilder extends MessageEmbed {
 
                         break;
                     }
+                    case EndMethod.NONE:
+                        break;
                     case EndMethod.DELETE:
                         this.message.delete()
                             .catch(() => null);
