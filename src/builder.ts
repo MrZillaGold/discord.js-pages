@@ -1,5 +1,3 @@
-// @ts-ignore
-import * as chunk from 'chunk';
 import {
     ColorResolvable,
     CommandInteraction,
@@ -13,7 +11,6 @@ import {
     MessageEmbed,
     MessageOptions,
     MessageSelectMenu,
-    TextBasedChannels,
     WebhookEditMessageOptions
 } from 'discord.js';
 
@@ -32,6 +29,8 @@ import {
     TriggersMap
 } from './interfaces';
 import { APIMessage } from 'discord-api-types/v9';
+
+import { chunk } from './utils';
 
 type Files = Exclude<MessageOptions['files'], undefined>;
 
@@ -65,7 +64,7 @@ export class PagesBuilder extends MessageEmbed {
     /**
      * Listen
      */
-    private listenTimeout: number = 5 * 60 * 1000;
+    private listenTimeout: number = 5 * 60 * 1_000;
     private listenUsers: GuildMember['id'][];
     private timeout!: NodeJS.Timeout;
     private autoResetTimeout = true;
@@ -181,7 +180,12 @@ export class PagesBuilder extends MessageEmbed {
     /**
      * Method for opening a specific page
      */
-    async setPage(pageNumber: number): Promise<any | Message | APIMessage> {
+    async setPage(pageNumber: number): Promise<
+        ReturnType<Message['edit']>
+        | ReturnType<CommandInteraction['editReply']>
+        | ReturnType<MessageComponentInteraction['editReply']>
+        | ReturnType<MessageComponentInteraction['update']>
+        > {
         this.currentPage = pageNumber;
 
         const data: WebhookEditMessageOptions = {
@@ -333,7 +337,7 @@ export class PagesBuilder extends MessageEmbed {
     /**
      * Method for setting the time to listen for updates to switch pages
      */
-    setListenTimeout(timeout = 5 * 60 * 1000): this {
+    setListenTimeout(timeout = 5 * 60 * 1_000): this {
         this.listenTimeout = timeout;
 
         return this;
@@ -593,7 +597,7 @@ export class PagesBuilder extends MessageEmbed {
             return rows;
         }
 
-        return rows.map((row) => {
+        return rows.reduce<MessageActionRow[]>((rows, row) => {
             row = new MessageActionRow(row);
 
             row.components = row.components.filter(({ type, customId }) => (
@@ -604,16 +608,19 @@ export class PagesBuilder extends MessageEmbed {
                     true
             ));
 
-            return row;
-        })
-            .filter((row) => row.components.length);
+            if (row.components.length) {
+                rows.push(row);
+            }
+
+            return rows;
+        }, []);
     }
 
     /**
      * @hidden
      */
     private startCollector(): void {
-        this.collector = (this.interaction.channel as TextBasedChannels).createMessageComponentCollector()
+        this.collector = this.interaction.channel!.createMessageComponentCollector()
             .on('collect', (interaction) => {
                 if (interaction.message.id !== this.messageId) {
                     return;
@@ -743,7 +750,6 @@ export class PagesBuilder extends MessageEmbed {
                 }
 
                 this.setPage(1);
-
                 break;
             case Action.BACK:
                 if (this.currentPage === 1) {
@@ -755,11 +761,9 @@ export class PagesBuilder extends MessageEmbed {
                 }
 
                 this.setPage(this.currentPage - 1);
-
                 break;
             case Action.STOP:
                 this.stopListen();
-
                 break;
             case Action.NEXT:
                 if (this.currentPage === this.pages.length) {
@@ -771,7 +775,6 @@ export class PagesBuilder extends MessageEmbed {
                 }
 
                 this.setPage(this.currentPage + 1);
-
                 break;
             case Action.LAST:
                 if (this.currentPage === this.pages.length) {
@@ -783,7 +786,6 @@ export class PagesBuilder extends MessageEmbed {
                 }
 
                 this.setPage(this.pages.length);
-
                 break;
         }
     }

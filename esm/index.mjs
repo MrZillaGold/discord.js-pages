@@ -1,12 +1,5 @@
-import DiscordJSPages from "../lib/PagesManager.js";
+import DiscordJSPages from '../lib/manager.js';
 
 export default DiscordJSPages;
 
-export const {
-    PagesManager,
-    PagesBuilder,
-
-    EndMethod,
-    Action,
-    ActionLabel
-} = DiscordJSPages;
+export * from '../lib/manager.js';
