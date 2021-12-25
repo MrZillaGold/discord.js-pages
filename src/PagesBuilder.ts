@@ -654,24 +654,20 @@ export class PagesBuilder extends MessageEmbed {
                             components: []
                         })
                             .catch(() => null);
-
                         break;
                     }
-                    case EndMethod.NONE:
-                        break;
-                    
-                    case _interfaces.EndMethod.COMPONENTS_REMOVE:
+                    case EndMethod.REMOVE_COMPONENTS:
                         this.message.edit({
                             components: []
                         })
+                            .catch(() => null);
                         break;
-                    
-                    case _interfaces.EndMethod.EMBEDS_REMOVE:
+                    case EndMethod.REMOVE_EMBEDS:
                         this.message.edit({
                             embeds: []
-                        }).catch(() => null);
+                        })
+                            .catch(() => null);
                         break;
-                    
                     case EndMethod.DELETE:
                         this.message.delete()
                             .catch(() => null);
