@@ -39,7 +39,7 @@
     "interaction",
     "components"
   ],
-  "dependencies": {
+  "peerDependencies": {
     "discord.js": "^13.0.1"
   },
   "devDependencies": {
