@@ -243,10 +243,14 @@ export class PagesBuilder extends MessageEmbed {
                                     text: `${pageNumber}${this.paginationFormat && footer.text ? ' • ' : ''}${footer.text}`
                                 };
                             } else {
-                                clonedPage.setFooter(pageNumber);
+                                clonedPage.setFooter({
+                                    text: pageNumber
+                                });
                             }
                         } else {
-                            clonedPage.setFooter(footer?.text ?? '');
+                            clonedPage.setFooter({
+                                text: footer?.text ?? ''
+                            });
                         }
 
                         break;
