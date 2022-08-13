@@ -1,9 +1,9 @@
-import { Client, MessageActionRow, MessageButton, MessageEmbed, MessageSelectMenu } from 'discord.js';
+import { Client, ButtonBuilder, ButtonStyle, SelectMenuBuilder, EmbedBuilder, ActionRowBuilder } from 'discord.js';
 import { PagesBuilder } from 'discord.js-pages';
 
 const client = new Client({
     intents: [
-        'GUILDS'
+        'Guilds'
     ]
 });
 
@@ -24,10 +24,10 @@ client.on('interactionCreate', (interaction) => {
         }))
     );
 
-    const sendListButton = new MessageButton()
+    const sendListButton = new ButtonBuilder()
         .setCustomId('send')
         .setLabel('Send Players List')
-        .setStyle('PRIMARY');
+        .setStyle(ButtonStyle.Primary);
 
     const builder = new PagesBuilder(interaction)
         .setTitle('Global title')
@@ -38,9 +38,9 @@ client.on('interactionCreate', (interaction) => {
             sendListButton.setDisabled(!selected.length);
 
             builder.setComponents([
-                new MessageActionRow()
+                new ActionRowBuilder()
                     .setComponents(
-                        new MessageSelectMenu()
+                        new SelectMenuBuilder()
                             .setCustomId('players')
                             .setPlaceholder('Select Players')
                             .setOptions(
@@ -48,11 +48,11 @@ client.on('interactionCreate', (interaction) => {
                             )
                             .setMaxValues(players.length)
                     ),
-                new MessageActionRow()
+                new ActionRowBuilder()
                     .setComponents(sendListButton)
             ]);
 
-            return new MessageEmbed()
+            return new EmbedBuilder()
                 .setDescription(`Your selection: ${selected}`);
         }
     ])

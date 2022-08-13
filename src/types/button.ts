@@ -1,4 +1,4 @@
-import { MessageButton } from 'discord.js';
+import { ButtonBuilder } from 'discord.js';
 
 export enum ActionLabel {
     FIRST = '⏪',
@@ -18,7 +18,7 @@ export enum Action {
 }
 export type ActionUnion = `${Action}`;
 export type ActionObject = {
-    [key in Action | ActionUnion]: MessageButton;
+    [key in Action | ActionUnion]: ButtonBuilder;
 };
 
 export type Button = Action | ActionUnion | ActionObject;

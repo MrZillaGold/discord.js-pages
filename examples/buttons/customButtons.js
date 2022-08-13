@@ -1,39 +1,43 @@
-import { Client, MessageEmbed, MessageButton, MessageActionRow } from 'discord.js';
+import { Client, EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle } from 'discord.js';
 import { PagesBuilder } from 'discord.js-pages';
 
 const client = new Client({
     intents: [
-        'GUILDS'
+        'Guilds'
     ]
 });
 
 client.on('interactionCreate', (interaction) => {
+    if (!interaction.isCommand()) {
+        return;
+    }
+
     // Custom buttons & select
     new PagesBuilder(interaction)
         .setTitle('Global title')
         .setPages([
-            new MessageEmbed()
+            new EmbedBuilder()
                 .setDescription('First page'),
-            new MessageEmbed()
+            new EmbedBuilder()
                 .setDescription('Second page')
         ])
         .setComponents([
-            new MessageActionRow()
+            new ActionRowBuilder()
                 .setComponents(
-                    new MessageButton()
+                    new ButtonBuilder()
                         .setCustomId('custom')
                         .setLabel('Custom button')
-                        .setStyle('PRIMARY')
+                        .setStyle(ButtonStyle.Primary)
                 )
         ])
         // You can add buttons/selects to the end of the list.
         // The library itself will find the component in which there is a place or create new for the element and add it.
         // Support array.
         .addComponents(
-            new MessageButton()
+            new ButtonBuilder()
                 .setCustomId('awesome')
                 .setLabel('Awesome button')
-                .setStyle('SECONDARY')
+                .setStyle(ButtonStyle.Secondary)
         )
         // Add triggers for handling interactions with buttons/selects.
         // Support array.

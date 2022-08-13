@@ -1,14 +1,14 @@
-import { Client, MessageEmbed, MessageButton, MessageActionRow } from 'discord.js';
+import { Client, EmbedBuilder, ButtonBuilder, ActionRowBuilder } from 'discord.js';
 import { PagesBuilder } from 'discord.js-pages';
 
 const client = new Client({
     intents: [
-        'GUILDS'
+        'Guilds'
     ]
 });
 
 client.on('interactionCreate', (interaction) => {
-    const link = new MessageButton()
+    const link = new ButtonBuilder()
         .setLabel('Dynamic link')
         .setStyle('LINK');
 
@@ -21,22 +21,22 @@ client.on('interactionCreate', (interaction) => {
             link.setURL('https://google.com/');
 
             builder.setComponents(
-                new MessageActionRow()
+                new ActionRowBuilder()
                     .addComponents(link)
             );
 
-            return new MessageEmbed()
+            return new EmbedBuilder()
                 .setDescription('First page');
         },
         () => {
             link.setURL('https://discord.com/');
 
             builder.setComponents(
-                new MessageActionRow()
+                new ActionRowBuilder()
                     .addComponents(link)
             );
 
-            return new MessageEmbed()
+            return new EmbedBuilder()
                 .setDescription('Second page');
         }
     ]);

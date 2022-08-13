@@ -1,11 +1,11 @@
 import { PagesBuilder } from './builder';
 
-import { IPagesInteraction, Middleware } from './interfaces';
+import { PagesInteraction, Middleware } from './types';
 
 export class PagesManager {
 
     get middleware(): Middleware {
-        return (interaction: IPagesInteraction) => {
+        return (interaction: PagesInteraction) => {
             interaction.pagesBuilder = () => (
                 new PagesBuilder(interaction)
             );
@@ -13,5 +13,5 @@ export class PagesManager {
     }
 }
 
-export * from './interfaces';
+export * from './types';
 export * from './builder';

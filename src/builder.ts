@@ -1,49 +1,55 @@
 import {
-    ColorResolvable,
-    CommandInteraction,
-    GuildMember,
-    InteractionCollector,
     Message,
-    MessageActionRow,
-    MessageActionRowComponent,
-    MessageButton,
-    MessageComponentInteraction,
-    MessageEmbed,
+    GuildMember,
+    ButtonStyle,
+    EmbedBuilder,
+    ButtonBuilder,
+    ComponentType,
     MessageOptions,
-    MessageSelectMenu,
-    WebhookEditMessageOptions
+    ColorResolvable,
+    ButtonComponent,
+    ActionRowBuilder,
+    ButtonInteraction,
+    AnyComponentBuilder,
+    SelectMenuComponent,
+    InteractionCollector,
+    SelectMenuInteraction,
+    WebhookEditMessageOptions,
+    MessageComponentInteraction,
+    ChatInputCommandInteraction,
+    MessageActionRowComponentBuilder
 } from 'discord.js';
+import { APIMessage } from 'discord-api-types/v10';
 
 import {
-    Action,
-    ActionLabel,
-    ActionLabelUnion,
-    ActionUnion,
-    Button,
-    EndMethod,
-    EndMethodUnion,
-    IAutoGeneratePagesOptions,
-    IResetListenTimeoutOptions,
-    ITrigger,
     Page,
-    TriggersMap
-} from './interfaces';
-import { APIMessage } from 'discord-api-types/v9';
+    Action,
+    Button,
+    Trigger,
+    EndMethod,
+    ActionLabel,
+    ActionUnion,
+    TriggersMap,
+    EndMethodUnion,
+    ActionLabelUnion,
+    AutoGeneratePagesOptions,
+    ResetListenTimeoutOptions, AllowArray
+} from './types';
 
-import { chunk } from './utils';
+import { chunk, mergeDeep } from './utils';
 
 type Files = Exclude<MessageOptions['files'], undefined>;
 
-export class PagesBuilder extends MessageEmbed {
+export class PagesBuilder extends EmbedBuilder {
 
     /**
      * Common
      */
-    readonly interaction: CommandInteraction;
-    private collector!: InteractionCollector<MessageComponentInteraction>;
+    readonly interaction: ChatInputCommandInteraction;
+    private collector!: InteractionCollector<SelectMenuInteraction | ButtonInteraction>;
     private messageComponent?: MessageComponentInteraction;
     private message!: Message;
-    private messageId = '';
+    private interactionId = '';
     private buildMethod!: 'followUp' | 'editReply' | 'reply';
 
     /**
@@ -58,8 +64,8 @@ export class PagesBuilder extends MessageEmbed {
     /**
      * Components
      */
-    protected components: MessageActionRow[] = [];
-    private defaultButtons: MessageActionRow[] = [];
+    protected components: ActionRowBuilder<MessageActionRowComponentBuilder>[] = [];
+    private defaultButtons: ActionRowBuilder<MessageActionRowComponentBuilder>[] = [];
 
     /**
      * Listen
@@ -68,7 +74,7 @@ export class PagesBuilder extends MessageEmbed {
     private listenUsers: GuildMember['id'][];
     private timeout!: NodeJS.Timeout;
     private autoResetTimeout = true;
-    private endColor: ColorResolvable = 'GREY';
+    private endColor: ColorResolvable = 'Grey';
     private endMethod: EndMethod | EndMethodUnion = EndMethod.EDIT;
 
     /**
@@ -76,7 +82,7 @@ export class PagesBuilder extends MessageEmbed {
      */
     private triggers: TriggersMap = new Map();
 
-    constructor(interaction: CommandInteraction) {
+    constructor(interaction: ChatInputCommandInteraction) {
         super();
 
         this.interaction = interaction;
@@ -92,15 +98,15 @@ export class PagesBuilder extends MessageEmbed {
      * @example
      * ```
      * builder.setPages(
-     *     new MessageEmbed()
+     *     new Embed()
      *         .setTitle('Hello World!')
      * );
      *
      * builder.setPages([
-     *     new MessageEmbed()
+     *     new Embed()
      *         .setTitle('Hello World!'),
      *     () => (
-     *         new MessageEmbed()
+     *         new Embed()
      *             .setTitle('Function page')
      *     )
      * ]);
@@ -162,12 +168,12 @@ export class PagesBuilder extends MessageEmbed {
      * });
      * ```
      */
-    autoGeneratePages({ items, countPerPage = 10 }: IAutoGeneratePagesOptions): this {
+    autoGeneratePages({ items, countPerPage = 10 }: AutoGeneratePagesOptions): this {
         const chunks = chunk(items, countPerPage);
 
         this.setPages(
             chunks.map((chunk) => (
-                new MessageEmbed()
+                new EmbedBuilder()
                     .setDescription(
                         chunk.join('\n')
                     )
@@ -182,7 +188,7 @@ export class PagesBuilder extends MessageEmbed {
      */
     async setPage(pageNumber: number): Promise<
         ReturnType<Message['edit']>
-        | ReturnType<CommandInteraction['editReply']>
+        | ReturnType<ChatInputCommandInteraction['editReply']>
         | ReturnType<MessageComponentInteraction['editReply']>
         | ReturnType<MessageComponentInteraction['update']>
         > {
@@ -190,7 +196,10 @@ export class PagesBuilder extends MessageEmbed {
 
         const data: WebhookEditMessageOptions = {
             embeds: await this.getPage(pageNumber),
-            components: this.simplifyKeyboard([...this.defaultButtons, ...this.components])
+            components: this.simplifyKeyboard([
+                ...this.defaultButtons,
+                ...this.components
+            ])
         };
 
         if (this.messageComponent) {
@@ -212,58 +221,29 @@ export class PagesBuilder extends MessageEmbed {
     /**
      * Method for getting the page
      */
-    async getPage(pageNumber: number = this.currentPage): Promise<MessageEmbed[]> {
+    async getPage(pageNumber: number = this.currentPage): Promise<EmbedBuilder[]> {
         let page: Page = this.pages[pageNumber - 1];
 
         if (typeof page === 'function') {
             page = await page();
         }
 
-        const clonedPage = new MessageEmbed(page);
+        const resultPage = new EmbedBuilder(
+            mergeDeep(this.toJSON(), page.toJSON())
+        );
 
-        Object.keys(clonedPage)
-            .forEach((pageKey) => {
-                const key = pageKey as keyof MessageEmbed;
+        if (this.paginationFormat) {
+            const pageNumber = this.paginationFormat
+                .replace('%c', String(this.currentPage))
+                .replace('%m', String(this.pages.length));
 
-                switch (key) {
-                    case 'fields':
-                        clonedPage[key] = [...this[key], ...clonedPage[key]];
-
-                        break;
-                    case 'footer': {
-                        const footer = this[key] ?? clonedPage[key];
-
-                        if (this.paginationFormat) {
-                            const pageNumber = this.paginationFormat.replace('%c', String(this.currentPage))
-                                .replace('%m', String(this.pages.length));
-
-                            if (footer) {
-                                clonedPage[key] = {
-                                    ...footer,
-                                    text: `${pageNumber}${this.paginationFormat && footer.text ? ' • ' : ''}${footer.text}`
-                                };
-                            } else {
-                                clonedPage.setFooter({
-                                    text: pageNumber
-                                });
-                            }
-                        } else {
-                            clonedPage.setFooter({
-                                text: footer?.text ?? ''
-                            });
-                        }
-
-                        break;
-                    }
-                    default:
-                        // @ts-ignore
-                        clonedPage[key] = this[key] ?? clonedPage[key];
-
-                        break;
-                }
+            resultPage.setFooter({
+                ...resultPage.data.footer,
+                text: pageNumber
             });
+        }
 
-        return [clonedPage];
+        return [resultPage];
     }
 
     /**
@@ -298,7 +278,7 @@ export class PagesBuilder extends MessageEmbed {
      * @example
      * ```
      * builder.setDefaultButtons(['first', {
-     *   stop: new MessageButton()
+     *   stop: new ButtonComponent()
      *      .setLabel('Stop')
      *      .setStyle('PRIMARY')
      * }]);
@@ -315,14 +295,14 @@ export class PagesBuilder extends MessageEmbed {
 
         this.defaultButtons = buttons.length ?
             [
-                new MessageActionRow()
+                new ActionRowBuilder<MessageActionRowComponentBuilder>()
                     .addComponents(
                         buttons.map((button: Button) => {
                             if (typeof button === 'string') {
-                                return new MessageButton()
+                                return new ButtonBuilder()
                                     .setCustomId(button)
                                     .setEmoji(defaultActions.get(button) as ActionUnion)
-                                    .setStyle('SECONDARY');
+                                    .setStyle(ButtonStyle.Secondary);
                             }
 
                             const [[buttonAction, buttonComponent]] = Object.entries(button);
@@ -350,7 +330,7 @@ export class PagesBuilder extends MessageEmbed {
     /**
      * @description Method for resetting the current listening timer
      */
-    resetListenTimeout({ isFirstBuild = false }: IResetListenTimeoutOptions = {}): void {
+    resetListenTimeout({ isFirstBuild = false }: ResetListenTimeoutOptions = {}): void {
         if (this.timeout || isFirstBuild) {
             clearTimeout(this.timeout as NodeJS.Timeout);
 
@@ -361,7 +341,7 @@ export class PagesBuilder extends MessageEmbed {
     /**
      * Method for setting embed color at the end of listening
      */
-    setListenEndColor(color: ColorResolvable = 'GREY'): this {
+    setListenEndColor(color: ColorResolvable = 'Grey'): this {
         this.endColor = color;
 
         return this;
@@ -379,7 +359,7 @@ export class PagesBuilder extends MessageEmbed {
     /**
      * Method for setting listening to specific users
      */
-    setListenUsers(users: GuildMember['id'] | GuildMember['id'][] = []): this {
+    setListenUsers(users: AllowArray<GuildMember['id']> = []): this {
         this.listenUsers = !Array.isArray(users) ? [users] : users;
 
         return this;
@@ -388,7 +368,7 @@ export class PagesBuilder extends MessageEmbed {
     /**
      * Method for adding listening to specific users
      */
-    addListenUsers(users: GuildMember['id'] | GuildMember['id'][]): this {
+    addListenUsers(users: AllowArray<GuildMember['id']>): this {
         this.listenUsers = this.listenUsers.concat(users);
 
         return this;
@@ -417,7 +397,9 @@ export class PagesBuilder extends MessageEmbed {
     /**
      * Method for setting components rows
      */
-    setComponents(components: MessageActionRow | MessageActionRow[]): this {
+    setComponents(
+        components: AllowArray<ActionRowBuilder<MessageActionRowComponentBuilder>>
+    ): this {
         if (!Array.isArray(components)) {
             components = [components];
         }
@@ -430,13 +412,19 @@ export class PagesBuilder extends MessageEmbed {
     /**
      * Method for adding components to available row
      */
-    addComponents(components: MessageActionRow | MessageActionRowComponent | (MessageActionRow | MessageActionRowComponent)[]): this {
+    addComponents(
+        components:
+            AllowArray<
+                ActionRowBuilder<MessageActionRowComponentBuilder>
+                | MessageActionRowComponentBuilder
+                >
+    ): this {
         if (!Array.isArray(components)) {
             components = [components];
         }
 
         components.forEach((component) => {
-            if (component instanceof MessageActionRow) {
+            if (component instanceof ActionRowBuilder) {
                 return this.components.push(component);
             }
 
@@ -444,7 +432,7 @@ export class PagesBuilder extends MessageEmbed {
 
             if (!length) {
                 this.components.push(
-                    new MessageActionRow()
+                    new ActionRowBuilder()
                 );
 
                 length++;
@@ -453,14 +441,14 @@ export class PagesBuilder extends MessageEmbed {
             const row = this.components[length - 1];
 
             if (
-                component.type !== 'SELECT_MENU' &&
+                component.data.type !== ComponentType.SelectMenu &&
                 row.components.length < 5 &&
-                row.components.findIndex(({ type }) => type === 'SELECT_MENU') === -1
+                row.components.findIndex(({ data: { type } }) => type === ComponentType.SelectMenu) === -1
             ) {
                 row.addComponents(component);
             } else {
                 this.components.push(
-                    new MessageActionRow()
+                    new ActionRowBuilder<MessageActionRowComponentBuilder>()
                         .addComponents(component)
                 );
             }
@@ -474,7 +462,7 @@ export class PagesBuilder extends MessageEmbed {
      *
      * @example
      * ```
-     * const button = new MessageButton()
+     * const button = new ButtonComponent()
      *    .setCustomId('test')
      *    .setLabel('Test button')
      *    .setStyle('PRIMARY');
@@ -488,18 +476,21 @@ export class PagesBuilder extends MessageEmbed {
      * builder.rerender();
      * ```
      */
-    updateComponents(components: MessageActionRowComponent | MessageActionRowComponent[]): this {
-        if (!Array.isArray(components)) {
-            components = [components];
+    updateComponents(rows: AllowArray<ActionRowBuilder<MessageActionRowComponentBuilder>>): this {
+        if (!Array.isArray(rows)) {
+            rows = [rows];
         }
 
-        components.forEach((component) => {
-            this.components.forEach((row) => {
-                const index = row.components.findIndex(({ customId }) => customId === component.customId);
+        rows.forEach((component) => {
+            this.components = this.components.map((row) => {
+                // @ts-ignore
+                const index = row.components.findIndex(({ data: { custom_id } }) => custom_id === component.data?.custom_id);
 
                 if (index !== -1) {
-                    row.spliceComponents(index, 1, component);
+                    row.components.splice(index, 1, ...component.components);
                 }
+
+                return row;
             });
         });
 
@@ -513,7 +504,7 @@ export class PagesBuilder extends MessageEmbed {
     /**
      * Method for initial setting of triggers
      */
-    setTriggers<T extends MessageButton | MessageSelectMenu>(triggers: ITrigger<T> | ITrigger<T>[] = []): this {
+    setTriggers<T extends ButtonComponent | SelectMenuComponent>(triggers: Trigger<T> | Trigger<T>[] = []): this {
         if (!Array.isArray(triggers)) {
             triggers = [triggers];
         }
@@ -528,7 +519,7 @@ export class PagesBuilder extends MessageEmbed {
     /**
      * Method for adding triggers
      */
-    addTriggers<T extends MessageButton | MessageSelectMenu>(triggers: ITrigger<T> | ITrigger<T>[]): this {
+    addTriggers<T extends ButtonComponent | SelectMenuComponent>(triggers: Trigger<T> | Trigger<T>[]): this {
         if (!Array.isArray(triggers)) {
             triggers = [triggers];
         }
@@ -566,22 +557,35 @@ export class PagesBuilder extends MessageEmbed {
         const response = await this.interaction[method]({
             embeds: await this.getPage(),
             files: this.files,
-            components: this.simplifyKeyboard([...this.defaultButtons, ...this.components])
+            components: this.simplifyKeyboard([
+                ...this.defaultButtons,
+                ...this.components
+            ])
         })
             .then((message) => {
                 if (message) {
-                    this.messageId = message.id;
+                    const interactionId = message.interaction?.id;
+
+                    if (interactionId) {
+                        this.interactionId = interactionId;
+                    }
+
                     this.message = message as Message;
                 }
             });
 
         this.buildMethod = method;
 
-        if (!this.messageId) {
+        if (!this.interactionId) {
             await this.interaction.fetchReply()
                 .then((message) => {
-                    this.messageId = message.id;
-                    this.message = message as Message;
+                    const interactionId = message.interaction?.id;
+
+                    if (interactionId) {
+                        this.interactionId = interactionId;
+                    }
+
+                    this.message = message;
                 });
         }
 
@@ -596,24 +600,43 @@ export class PagesBuilder extends MessageEmbed {
     /**
      * @hidden
      */
-    private simplifyKeyboard(rows: MessageActionRow[]): MessageActionRow[] {
+    private simplifyKeyboard(rows: ActionRowBuilder<MessageActionRowComponentBuilder>[]): ReturnType<ActionRowBuilder<MessageActionRowComponentBuilder>['toJSON']>[] {
         if (this.loop && this.pages.length > 1) {
-            return rows;
+            return rows
+                .map((row) => (
+                    row.toJSON()
+                ));
         }
 
-        return rows.reduce<MessageActionRow[]>((rows, row) => {
-            row = new MessageActionRow(row);
+        return rows.reduce<ReturnType<ActionRowBuilder<MessageActionRowComponentBuilder>['toJSON']>[]>((rows, row) => {
+            const components = row.components.filter(({ data }) => {
+                // @ts-ignore
+                const { type, custom_id } = data!;
 
-            row.components = row.components.filter(({ type, customId }) => (
-                type === 'BUTTON' ?
-                    (this.currentPage !== 1 || this.pages.length !== 1 || (customId !== Action.FIRST && customId !== Action.BACK)) &&
-                    (this.currentPage !== this.pages.length || this.pages.length !== 1 || (customId !== Action.LAST && customId !== Action.NEXT))
-                    :
-                    true
-            ));
+                return (
+                    type !== ComponentType.Button ||
+                    (
+                        this.currentPage !== 1 ||
+                        this.pages.length !== 1 ||
+                        (custom_id !== Action.FIRST && custom_id !== Action.BACK)
+                    ) &&
+                    (
+                        this.currentPage !== this.pages.length ||
+                        this.pages.length !== 1 ||
+                        (custom_id !== Action.LAST && custom_id !== Action.NEXT)
+                    )
+                );
+            });
+
+            row = new ActionRowBuilder<MessageActionRowComponentBuilder>({
+                ...row,
+                components
+            });
 
             if (row.components.length) {
-                rows.push(row);
+                rows.push(
+                    row.toJSON()
+                );
             }
 
             return rows;
@@ -625,13 +648,13 @@ export class PagesBuilder extends MessageEmbed {
      */
     private startCollector(): void {
         this.collector = this.interaction.channel!.createMessageComponentCollector()
-            .on('collect', (interaction) => {
-                if (interaction.message.id !== this.messageId) {
+            .on('collect', (event) => {
+                if (event.message?.interaction?.id !== this.interactionId) {
                     return;
                 }
 
                 if (this.listenUsers.length) {
-                    if (!this.listenUsers.includes(interaction.member?.user.id as GuildMember['id'])) {
+                    if (!this.listenUsers.includes(event.member?.user.id!)) {
                         return;
                     }
                 }
@@ -640,15 +663,15 @@ export class PagesBuilder extends MessageEmbed {
                     this.resetListenTimeout();
                 }
 
-                this.messageComponent = interaction;
-                this.message = interaction.message as Message;
+                this.messageComponent = event;
+                this.message = event.message as Message;
 
-                if (interaction.isButton()) {
-                    this.handleButton(interaction);
+                if (event.isButton()) {
+                    this.handleButton(event);
                 }
 
-                if (interaction.isSelectMenu()) {
-                    this.handleSelectMenu(interaction);
+                if (event.isSelectMenu()) {
+                    this.handleSelectMenuComponent(event);
                 }
             })
             .on('end', async () => {
@@ -696,13 +719,14 @@ export class PagesBuilder extends MessageEmbed {
         this.executeAction(customId);
 
         const trigger = this.triggers.get(customId);
-        const buttons: MessageButton[] = [];
+        const buttons: AnyComponentBuilder[] = [];
 
         if (trigger) {
             this.components.forEach((component) => {
                 component.components.forEach((button) => {
-                    if (button.customId === customId) {
-                        buttons.push(button as MessageButton);
+                    // @ts-ignore
+                    if (button.data?.custom_id === customId) {
+                        buttons.push(button);
                     }
                 });
             });
@@ -718,17 +742,18 @@ export class PagesBuilder extends MessageEmbed {
     /**
      * @hidden
      */
-    private async handleSelectMenu(interaction: MessageComponentInteraction): Promise<void> {
+    private async handleSelectMenuComponent(interaction: MessageComponentInteraction): Promise<void> {
         const { customId } = interaction;
 
         const trigger = this.triggers.get(customId);
-        const menu: MessageSelectMenu[] = [];
+        const menu: AnyComponentBuilder[] = [];
 
         if (trigger) {
             this.components.forEach((component) => {
                 component.components.forEach((component) => {
-                    if (component.customId === customId) {
-                        menu.push(component as MessageSelectMenu);
+                    // @ts-ignore
+                    if (component.data?.custom_id === customId) {
+                        menu.push(component);
                     }
                 });
             });

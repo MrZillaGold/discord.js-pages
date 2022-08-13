@@ -1,4 +1,4 @@
-export interface IResetListenTimeoutOptions {
+export interface ResetListenTimeoutOptions {
     isFirstBuild?: boolean;
 }
 

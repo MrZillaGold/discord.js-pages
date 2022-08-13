@@ -10,7 +10,7 @@
   </a>
 
 | 📖 [Documentation](https://mrzillagold.github.io/discord.js-pages/index.html) | [🤖 Examples](https://github.com/MrZillaGold/discord.js-pages/tree/master/examples) |
-| --- | --- |
+|-------------------------------------------------------------------------------|-------------------------------------------------------------------------------------|
 
 </p>
 
@@ -20,11 +20,11 @@
 ### Usage 📦
 ```js
 import { PagesBuilder, PagesManager } from 'discord.js-pages';
-import { Client, MessageEmbed } from 'discord.js';
+import { Client, EmbedBuilder } from 'discord.js';
 
 const client = new Client({
     intents: [
-        'GUILDS'
+        'Guilds'
     ]
 });
 
@@ -32,32 +32,54 @@ const pagesManager = new PagesManager();
 
 // Middleware is useful in bots with modular commands
 client.on('interactionCreate', (interaction) => {
+    if (!interaction.isCommand()) {
+        return;
+    }
+
     pagesManager.middleware(interaction);
 
-    message.pagesBuilder()
+    interaction.pagesBuilder()
         .setTitle('Global title')
         .setPages([
-            new MessageEmbed()
+            new EmbedBuilder()
                 .setDescription('First page'),
-            new MessageEmbed()
+            new EmbedBuilder()
                 .setDescription('Second page')
         ])
-        .addField('Global field', 'discord.js-pages', true)
-        .setColor('GREEN')
+        .addFields([
+            {
+                name: 'Global field',
+                value: 'discord.js-pages',
+                inline: true
+            }
+        ])
+        .setColor('Green')
+        .setPaginationFormat()
         .build();
 });
 
+// Also you can create PagesBuilder instance directly
 client.on('interactionCreate', (interaction) => {
+    if (!interaction.isCommand()) {
+        return;
+    }
+
     new PagesBuilder(interaction)
         .setTitle('Global title')
         .setPages([
-            new MessageEmbed()
+            new EmbedBuilder()
                 .setDescription('First page'),
-            new MessageEmbed()
+            new EmbedBuilder()
                 .setDescription('Second page')
         ])
-        .addField('Global field', 'discord.js-pages', true)
-        .setColor('GREEN')
+        .addFields([
+            {
+                name: 'Global field',
+                value: 'discord.js-pages',
+                inline: true
+            }
+        ])
+        .setColor('Green')
         .build();
 });
 
