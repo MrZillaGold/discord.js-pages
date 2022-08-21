@@ -1,4 +1,4 @@
-import { Client, EmbedBuilder, ButtonBuilder, ActionRowBuilder } from 'discord.js';
+import { Client, EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle } from 'discord.js';
 import { PagesBuilder } from 'discord.js-pages';
 
 const client = new Client({
@@ -10,7 +10,7 @@ const client = new Client({
 client.on('interactionCreate', (interaction) => {
     const link = new ButtonBuilder()
         .setLabel('Dynamic link')
-        .setStyle('LINK');
+        .setStyle(ButtonStyle.Link);
 
     // Dynamic buttons update
     const builder = new PagesBuilder(interaction)

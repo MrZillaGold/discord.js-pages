@@ -1,9 +1,9 @@
-import { Client, EmbedBuilder, ButtonBuilder } from 'discord.js';
+import { Client, EmbedBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { PagesBuilder } from 'discord.js-pages';
 
 const client = new Client({
     intents: [
-        'GUILDS'
+        'Guilds'
     ]
 });
 
@@ -22,7 +22,7 @@ client.on('interactionCreate', (interaction) => {
         .setDefaultButtons(['first', {
             stop: new ButtonBuilder()
                 .setLabel('Stop')
-                .setStyle('PRIMARY')
+                .setStyle(ButtonStyle.Primary)
         }])
         .build();
 });
