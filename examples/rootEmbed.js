@@ -3,11 +3,15 @@ import { PagesBuilder } from 'discord.js-pages';
 
 const client = new Client({
     intents: [
-        'GUILDS'
+        'Guilds'
     ]
 });
 
 client.on('interactionCreate', (interaction) => {
+    if (!interaction.isCommand()) {
+        return;
+    }
+
     /*
     PagesBuilder extends the MessageEmbed class, it inherits all of its methods and properties.
     You can add new properties using methods.
