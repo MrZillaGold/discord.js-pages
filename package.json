@@ -1,6 +1,6 @@
 {
   "name": "discord.js-pages",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Dynamic pages pagination module for discord.js",
   "scripts": {
     "build": "tsc && babel build --out-dir lib --copy-files",

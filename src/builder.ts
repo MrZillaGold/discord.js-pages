@@ -14,6 +14,7 @@ import {
     SelectMenuComponent,
     InteractionCollector,
     SelectMenuInteraction,
+    InteractionReplyOptions,
     WebhookEditMessageOptions,
     MessageComponentInteraction,
     ChatInputCommandInteraction,
@@ -239,7 +240,7 @@ export class PagesBuilder extends EmbedBuilder {
 
             resultPage.setFooter({
                 ...resultPage.data.footer,
-                text: pageNumber
+                text: `${pageNumber}${pageNumber ? ' • ' : ''}${resultPage.data.footer?.text}`
             });
         }
 
@@ -541,7 +542,7 @@ export class PagesBuilder extends EmbedBuilder {
     /**
      * Build method
      */
-    async build(): Promise<void | Message | APIMessage> {
+    async build(options: Pick<InteractionReplyOptions, 'ephemeral'> = {}): Promise<void | Message | APIMessage> {
         if (this.pages.length === 0) {
             throw new TypeError('Pages not set');
         }
@@ -560,7 +561,8 @@ export class PagesBuilder extends EmbedBuilder {
             components: this.simplifyKeyboard([
                 ...this.defaultButtons,
                 ...this.components
-            ])
+            ]),
+            ...options
         })
             .then((message) => {
                 if (message) {
@@ -674,7 +676,19 @@ export class PagesBuilder extends EmbedBuilder {
                     this.handleSelectMenuComponent(event);
                 }
             })
-            .on('end', async () => {
+            .on('end', async (collection) => {
+                const messageComponentId = this.messageComponent?.id;
+
+                if (!messageComponentId) {
+                    return;
+                }
+
+                const interaction = collection.get(messageComponentId);
+
+                if (!interaction) {
+                    return;
+                }
+
                 switch (this.endMethod) {
                     case EndMethod.EDIT: {
                         const embeds = await this.getPage();
@@ -683,7 +697,7 @@ export class PagesBuilder extends EmbedBuilder {
 
                         embed.setColor(this.endColor);
 
-                        this.message.edit({
+                        interaction.editReply({
                             embeds,
                             components: []
                         })
@@ -691,19 +705,19 @@ export class PagesBuilder extends EmbedBuilder {
                         break;
                     }
                     case EndMethod.REMOVE_COMPONENTS:
-                        this.message.edit({
+                        interaction.editReply({
                             components: []
                         })
                             .catch(() => null);
                         break;
                     case EndMethod.REMOVE_EMBEDS:
-                        this.message.edit({
+                        interaction.editReply({
                             embeds: []
                         })
                             .catch(() => null);
                         break;
                     case EndMethod.DELETE:
-                        this.message.delete()
+                        interaction.deleteReply()
                             .catch(() => null);
                         break;
                 }
