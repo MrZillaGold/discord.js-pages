@@ -47,10 +47,9 @@ export class PagesBuilder extends EmbedBuilder {
      * Common
      */
     readonly interaction: ChatInputCommandInteraction;
-    private collector!: InteractionCollector<SelectMenuInteraction | ButtonInteraction>;
-    private messageComponent?: MessageComponentInteraction;
     private message!: Message;
-    private interactionId = '';
+    private messageComponent?: MessageComponentInteraction;
+    private collector!: InteractionCollector<SelectMenuInteraction | ButtonInteraction>;
     private buildMethod!: 'followUp' | 'editReply' | 'reply';
 
     /**
@@ -187,12 +186,7 @@ export class PagesBuilder extends EmbedBuilder {
     /**
      * Method for opening a specific page
      */
-    async setPage(pageNumber: number): Promise<
-        ReturnType<Message['edit']>
-        | ReturnType<ChatInputCommandInteraction['editReply']>
-        | ReturnType<MessageComponentInteraction['editReply']>
-        | ReturnType<MessageComponentInteraction['update']>
-        > {
+    async setPage(pageNumber: number): Promise<ReturnType<PagesBuilder['editReply']>> {
         this.currentPage = pageNumber;
 
         const data: WebhookEditMessageOptions = {
@@ -203,6 +197,18 @@ export class PagesBuilder extends EmbedBuilder {
             ])
         };
 
+        return this.editReply(data);
+    }
+
+    /**
+     * Method for edit current reply
+     *
+     * @hidden
+     */
+    private editReply(data: WebhookEditMessageOptions): ReturnType<Message['edit']>
+        | ReturnType<ChatInputCommandInteraction['editReply']>
+        | ReturnType<MessageComponentInteraction['editReply']>
+        | ReturnType<MessageComponentInteraction['update']> {
         if (this.messageComponent) {
             const method = this.messageComponent.deferred || this.messageComponent.replied ?
                 'editReply'
@@ -238,9 +244,11 @@ export class PagesBuilder extends EmbedBuilder {
                 .replace('%c', String(this.currentPage))
                 .replace('%m', String(this.pages.length));
 
+            const footerText = resultPage.data.footer?.text || '';
+
             resultPage.setFooter({
                 ...resultPage.data.footer,
-                text: `${pageNumber}${pageNumber ? ' • ' : ''}${resultPage.data.footer?.text}`
+                text: `${pageNumber}${pageNumber && footerText ? ' • ' : ''}${footerText}`
             });
         }
 
@@ -562,34 +570,14 @@ export class PagesBuilder extends EmbedBuilder {
                 ...this.defaultButtons,
                 ...this.components
             ]),
+            fetchReply: true,
             ...options
         })
             .then((message) => {
-                if (message) {
-                    const interactionId = message.interaction?.id;
-
-                    if (interactionId) {
-                        this.interactionId = interactionId;
-                    }
-
-                    this.message = message as Message;
-                }
+                this.message = message as Message;
             });
 
         this.buildMethod = method;
-
-        if (!this.interactionId) {
-            await this.interaction.fetchReply()
-                .then((message) => {
-                    const interactionId = message.interaction?.id;
-
-                    if (interactionId) {
-                        this.interactionId = interactionId;
-                    }
-
-                    this.message = message;
-                });
-        }
 
         this.startCollector();
         this.resetListenTimeout({
@@ -651,14 +639,15 @@ export class PagesBuilder extends EmbedBuilder {
     private startCollector(): void {
         this.collector = this.interaction.channel!.createMessageComponentCollector()
             .on('collect', (event) => {
-                if (event.message?.interaction?.id !== this.interactionId) {
+                if (event.message?.id !== this.message.id) {
                     return;
                 }
 
-                if (this.listenUsers.length) {
-                    if (!this.listenUsers.includes(event.member?.user.id!)) {
-                        return;
-                    }
+                if (
+                    this.listenUsers.length &&
+                    !this.listenUsers.includes(event.member?.user.id!)
+                ) {
+                    return;
                 }
 
                 if (this.autoResetTimeout) {
@@ -676,19 +665,7 @@ export class PagesBuilder extends EmbedBuilder {
                     this.handleSelectMenuComponent(event);
                 }
             })
-            .on('end', async (collection) => {
-                const messageComponentId = this.messageComponent?.id;
-
-                if (!messageComponentId) {
-                    return;
-                }
-
-                const interaction = collection.get(messageComponentId);
-
-                if (!interaction) {
-                    return;
-                }
-
+            .on('end', async () => {
                 switch (this.endMethod) {
                     case EndMethod.EDIT: {
                         const embeds = await this.getPage();
@@ -697,27 +674,26 @@ export class PagesBuilder extends EmbedBuilder {
 
                         embed.setColor(this.endColor);
 
-                        interaction.editReply({
+                        this.editReply({
                             embeds,
                             components: []
-                        })
-                            .catch(() => null);
+                        });
                         break;
                     }
                     case EndMethod.REMOVE_COMPONENTS:
-                        interaction.editReply({
+                        this.editReply({
                             components: []
                         })
                             .catch(() => null);
                         break;
                     case EndMethod.REMOVE_EMBEDS:
-                        interaction.editReply({
+                        this.editReply({
                             embeds: []
                         })
                             .catch(() => null);
                         break;
                     case EndMethod.DELETE:
-                        interaction.deleteReply()
+                        this.message.delete()
                             .catch(() => null);
                         break;
                 }
