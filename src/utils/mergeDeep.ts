@@ -19,7 +19,7 @@ export function mergeDeep(target: Record<any, any>, ...sources: Record<any, any>
                     });
                 }
 
-                mergeDeep(targetField, sourceField);
+                mergeDeep(target[key], sourceField);
             } else if (Array.isArray(sourceField)) {
                 Object.assign(target, {
                     [key]: [...(targetField || []), ...sourceField]
