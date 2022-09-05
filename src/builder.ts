@@ -236,9 +236,8 @@ export class PagesBuilder extends EmbedBuilder {
         }
 
         const resultPage = new EmbedBuilder(
-            mergeDeep(this.toJSON(), page.toJSON())
+            mergeDeep(page.toJSON(), this.toJSON())
         );
-        resultPage.setThumbnail(page.toJSON().thumbnail.url)
 
         if (this.paginationFormat) {
             const pageNumber = this.paginationFormat
